@@ -1,0 +1,44 @@
+# ============================================================
+# Azure DevOps iterations 管理配置示例
+# 使用: python manage_iterations.py -c config.example.yml [--dry-run]
+# ============================================================
+
+# Azure DevOps 连接信息
+azure:
+  organization: my-org        # 组织名, 即 dev.azure.com/<organization> 中的部分
+  project: MyProject          # 项目名
+  pat_env: AZDO_PAT           # 从哪个环境变量读取 Personal Access Token (默认 AZDO_PAT)
+  # pat: <token>              # 也可以直接写 PAT (不推荐, 避免泄露/误提交)
+
+# 迭代定义 (写入 project configuration 的 Iterations 分类树)
+iterations:
+  # 迭代所在 location, 位于项目 Iterations 节点下, 用 "/" 分隔多级路径
+  # 不存在时自动创建; 留空则直接放在 Iterations 根节点下
+  location: "MyIterations"
+
+  # 迭代命名 (Sprint YYYY.Rx.y) 使用的年份, 必填。
+  # 不取 sprint 起始日期的年份, 因为第一个 release 可能从上一年 12 月开始。
+  # 也可以在单个 release 中用 year 字段覆盖。
+  year: 2026
+
+  # Release 列表, 按出现顺序依次编号 R1, R2, ...
+  releases:
+    - start_date: 2026-01-05   # release 开始日期, 必须是周一
+      cool_down: true          # 第一个 sprint 为 Cool down sprint, 编号从 0 开始
+                               # 即 Sprint 2026.R1.0, Sprint 2026.R1.1, ...
+      sprints: 5               # 该 release 共几个 sprint (含 cool down)
+                               # 若省略, 将按下一个 release 的开始日期自动推算
+      # year: 2026             # 可选: 覆盖全局 iterations.year 的命名年份
+
+    - start_date: 2026-03-16
+      cool_down: false         # 第一个 sprint 为 normal sprint, 编号从 1 开始
+                               # 即 Sprint 2026.R2.1, Sprint 2026.R2.2, ...
+      sprints: 6
+
+# 添加迭代到 team configuration
+team:
+  name: MyTeam                 # team 名称
+  # 可选: 只添加该范围(闭区间)内的迭代, 引用格式为 Rx.y; 省略则添加全部
+  range:
+    from: R1.0
+    to: R2.6
